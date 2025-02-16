@@ -1,0 +1,139 @@
+<?php
+session_start();
+require 'dbcon.php';
+
+// Redirect logged-in users to the dashboard
+if (!empty($_SESSION["id"])) {
+    header("Location: dashboard.php");
+    exit();
+}
+
+// Handle login form submission
+if (isset($_POST['login'])) {
+    if (empty($_POST['username']) || empty($_POST['password'])) {
+        echo "<script>alert('Username and Password are required!');</script>";
+    } else {
+        // Sanitize input
+        $username = mysqli_real_escape_string($con, $_POST['username']);
+        $password = $_POST['password']; // No escaping needed, as it's not directly used in SQL
+
+        // Prepare SQL statement
+        $sql = "SELECT * FROM userdata WHERE uname = ?";
+        $stmt = mysqli_prepare($con, $sql);
+        mysqli_stmt_bind_param($stmt, "s", $username);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $row = mysqli_fetch_assoc($result);
+
+        if ($row) {
+            // Verify password (Assumes password is stored as a hash)
+            if (password_verify($password, $row["password"])) {
+                $_SESSION["login"] = true;
+                $_SESSION["id"] = $row["id"];
+                header("Location: dashboard.php");
+                exit();
+            } else {
+                echo "<script>alert('Wrong Password!');</script>";
+            }
+        } else {
+            echo "<script>alert('Username not found!');</script>";
+        }
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Admin Login - Jamnagar Public Welfare Schemes</title>
+
+  <!-- Favicon -->
+  <link rel="shortcut icon" type="image/x-icon" href="https://i.ibb.co/FwbCBHF/fotor-2023-1-29-10-51-0.png">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.gstatic.com" rel="preconnect">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+  <link href="assets/vendor/quill/quill.snow.css" rel="stylesheet">
+  <link href="assets/vendor/quill/quill.bubble.css" rel="stylesheet">
+  <link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
+  <link href="assets/vendor/simple-datatables/style.css" rel="stylesheet">
+
+  <!-- Main CSS File -->
+  <link href="assets/css/style.css" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #D9E7F8; 
+    }
+  </style>
+</head>
+
+<body>
+
+  <main>
+    <div class="container">
+      <section class="section register min-vh-100 d-flex flex-column align-items-center justify-content-center py-4">
+        <div class="container">
+          <div class="row justify-content-center">
+            <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
+
+              <div class="card mb-3">
+                <div class="card-body">
+                  <div class="pt-4 pb-2">
+                    <h5 class="card-title text-center pb-0 fs-4">Admin Login</h5>
+                    <p class="text-center small">Enter your username & password to login</p>
+                  </div>
+
+                  <form class="row g-3 needs-validation" method="POST" novalidate autocomplete="off">
+                    <div class="col-12">
+                      <label for="yourUsername" class="form-label">Username</label>
+                      <div class="input-group has-validation">
+                        <span class="input-group-text" id="inputGroupPrepend">@</span>
+                        <input type="text" name="username" class="form-control" id="yourUsername" required>
+                        <div class="invalid-feedback">Please enter your username.</div>
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <label for="yourPassword" class="form-label">Password</label>
+                      <input type="password" name="password" class="form-control" id="yourPassword" required>
+                      <div class="invalid-feedback">Please enter your password!</div>
+                    </div>
+
+                    <div class="col-12">
+                      <button class="btn btn-primary w-100" type="submit" name="login">Login</button>
+                    </div>
+                  </form>
+
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Back to top button -->
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center">
+    <i class="bi bi-arrow-up-short"></i>
+  </a>
+
+  <!-- Vendor JS Files -->
+  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/vendor/quill/quill.min.js"></script>
+  <script src="assets/vendor/simple-datatables/simple-datatables.js"></script>
+
+  <!-- Main JS File -->
+  <script src="assets/js/main.js"></script>
+
+</body>
+</html>
